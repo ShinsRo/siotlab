@@ -1,0 +1,13 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    restart: always
+    command:
+    - --config=/etc/otel-collector-config.yml
+    volumes:
+      - ./volumes/etc/otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4316:4316"   # OTLP http receiver
+      - "4317:4317"   # OTLP gRPC receiver
+      - "55679:55679" # zpages extension
+      - "13133:13133" # health_check extension

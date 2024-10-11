@@ -1,0 +1,11 @@
+name: "${SIOTLAB_PROJECT_NAME:-siotlab}"
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./volumes/etc/prometheus.yml:/etc/prometheus.yml

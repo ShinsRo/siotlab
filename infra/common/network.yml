@@ -1,0 +1,5 @@
+networks:
+  siotlab-network:
+    external: true
+    attachable: true
+    name: "${SIOLAB_NETWORK_ID:-siotlab-network}"

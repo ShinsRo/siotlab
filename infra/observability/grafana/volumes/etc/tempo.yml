@@ -1,0 +1,85 @@
+server:
+  http_listen_port: 3200
+
+query_frontend:
+  max_retries: 3
+  max_batch_size: 10
+  response_consumers: 5
+  log_query_request_headers:
+
+  search:
+    duration_slo: 5s
+    throughput_bytes_slo: 1.073741824e+09
+  trace_by_id:
+    duration_slo: 5s
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: localhost:4316
+        grpc:
+          endpoint: localhost:4317
+
+ingester:
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 1h
+
+# TSDB(시계열 DB) 설정 블록
+storage:
+  trace:
+    backend: local
+    blocklist_poll: 5m
+    wal:
+      path: /var/tempo/wal
+    local:
+      # TSDB(시계열 DB) 저장 경로
+      path: /var/tempo/tsdb
+
+# Tempo 자체의 메트릭 생성 옵션 설정
+metrics_generator:
+  processor:
+    span_metrics:
+      dimensions:
+      - http.method
+      - http.target
+      - http.status_code
+      - service.version
+
+    service_graphs:
+      dimensions:
+      - http.method
+      - http.target
+      - http.status_code
+      - service.version
+
+    local_blocks:
+      flush_to_storage: true
+
+  registry:
+    # 새로운 메트릭 생성 주기
+    collection_interval: 60s
+    external_labels:
+      source: tempo
+
+  storage:
+    path: /var/tempo/generator/wal
+    remote_write:
+      - url: ${TEMPO_STORAGE_REMOTE_WRITE_URL}
+        name: ${TEMPO_STORAGE_REMOTE_WRITE_NAME:-storage_remote_write}
+        send_exemplars: true
+
+  traces_storage:
+    path: /var/tempo/generator/traces
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors:
+      - service-graphs
+      - span-metrics
+      - local-blocks

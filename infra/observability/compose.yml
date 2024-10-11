@@ -1,0 +1,7 @@
+name: "${SIOTLAB_PROJECT_NAME:-siotlab}"
+
+include:
+  - grafana/compose.yml
+  - prometheus/compose.yml
+  - collector/compose.yml
+  - ../common/network.yml

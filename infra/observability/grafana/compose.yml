@@ -1,0 +1,38 @@
+name: "${SIOTLAB_PROJECT_NAME:-siotlab}"
+
+services:
+  grafana:
+    image: grafana/grafana:11.2.2
+    ports:
+      - "3000:${SIOTLAB_GRAFANA_PORT:-3000}"
+    volumes:
+      - ./volumes/log:/var/log/grafana
+      - ./volumes/data:/var/lib/grafana
+      - ./volumes/etc/grafana.ini:/etc/grafana/grafana.ini
+      - ./volumes/etc/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+
+  loki:
+    image: grafana/loki:latest
+    command:
+#      - -print-config-stderr                              # Loki Config 를 출력한다.
+#      - -log-config-reverse-order                         # Loki Config 를 역순으로 출력한다.
+      - -config.file=/etc/loki/loki.yml                    # 로키 초기화 설정 - 이미지에 내장된 설정: /etc/loki/local-config.yaml
+    volumes:
+      - ./volumes/etc/loki.yml:/etc/loki/loki.yml
+      - ./volumes/loki/rules/:/etc/loki/rules
+      - ./volumes/loki/chunks/:/etc/loki/chunks
+
+  tempo:
+    image: grafana/tempo:latest
+    command:
+      - -config.expand-env=true
+      - -config.file=/etc/tempo.yml
+    volumes:
+      - ./volumes/etc/tempo.yml:/etc/tempo.yml
+      - ./volumes/tempo/tsdb:/var/tempo/tsdb
+      - ./volumes/tempo/generator/wal:/var/tempo/generator/wal
+      - ./volumes/tempo/generator/traces:/var/tempo/generator/traces
+    environment:
+      # TODO: env 파일로 분리
+      - TEMPO_STORAGE_REMOTE_WRITE_URL=http://prometheus:9090/api/v1/write
+      - TEMPO_STORAGE_REMOTE_WRITE_NAME=prometheus_remote_write
