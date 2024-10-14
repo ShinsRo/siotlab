@@ -1,0 +1,1 @@
+name: "${SIOTLAB_PROJECT_NAME:-siotlab}"

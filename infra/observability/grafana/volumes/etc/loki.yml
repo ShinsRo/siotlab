@@ -33,9 +33,6 @@ ingester:
   max_chunk_age: 8h
   chunk_idle_period: 4h
 
-pattern_ingester:
-  enabled: true
-
 schema_config:
   configs:
   - from: 2024-10-08

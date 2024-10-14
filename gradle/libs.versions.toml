@@ -1,0 +1,40 @@
+[versions]
+kotlin = "1.9.24"
+kotlinLogging = "6.0.9"
+
+springBoot = "3.3.4"
+springCloud = "2023.0.3"
+
+netty = "4.1.105.Final"
+
+otel-inst = "2.8.0"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+
+spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
+spring-dependency = { id = "io.spring.dependency-management", version = "1.1.6" }
+
+[libraries]
+### 컴파일, 런타임, 테스트 의존성 ###
+# Netty 의존성
+netty-resolver-dns-macos = { module = "io.netty:netty-resolver-dns-native-macos", version.ref = "netty" }
+
+# Kotlin 의존성
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
+
+# Spring Cloud 의존성
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springCloud" }
+spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway" }
+
+# Spring Boot 의존성
+spring-boot-starter-core = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
+
+# Opentelemetry 의존성
+otel-instrumentation-bom = { module = 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom', version.ref = "otel-inst" }
+otel-instrumentation-spring-boot = { module = 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter' }
