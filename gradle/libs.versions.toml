@@ -2,8 +2,9 @@
 kotlin = "1.9.24"
 kotlinLogging = "6.0.9"
 
+springDep = "2023.0.3"
 springBoot = "3.3.4"
-springCloud = "2023.0.3"
+springCloud = "4.1.4"
 
 netty = "4.1.105.Final"
 
@@ -26,14 +27,16 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
 
 # Spring Cloud 의존성
-spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springCloud" }
-spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway" }
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springDep" }
+spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "springCloud" }
+spring-cloud-gateway-webflux = { module = "org.springframework.cloud:spring-cloud-gateway-webflux", version.ref = "springCloud" }
 
 # Spring Boot 의존성
 spring-boot-starter-core = { module = "org.springframework.boot:spring-boot-starter", version.ref = "springBoot" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "springBoot" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
+spring-boot-starter-redis-reactive = { module = "org.springframework.boot:spring-boot-starter-data-redis-reactive", version.ref = "springBoot" }
 
 # Opentelemetry 의존성
 otel-instrumentation-bom = { module = 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom', version.ref = "otel-inst" }
