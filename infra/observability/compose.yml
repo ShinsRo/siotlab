@@ -1,5 +1,3 @@
-name: "${SIOTLAB_PROJECT_NAME:-siotlab}"
-
 include:
   - grafana/compose.yml
   - prometheus/compose.yml

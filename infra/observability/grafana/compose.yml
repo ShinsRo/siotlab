@@ -12,7 +12,7 @@ services:
       - ./volumes/etc/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.2.0
     command:
 #      - -print-config-stderr                              # Loki Config 를 출력한다.
 #      - -log-config-reverse-order                         # Loki Config 를 역순으로 출력한다.
@@ -23,7 +23,7 @@ services:
       - ./volumes/loki/chunks/:/etc/loki/chunks
 
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.6.0
     command:
       - -config.expand-env=true
       - -config.file=/etc/tempo.yml
