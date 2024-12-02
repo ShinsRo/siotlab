@@ -1,0 +1,9 @@
+FROM confluentinc/cp-kafka-connect:7.5.2
+
+# Install connectors
+# debezium-connector-mysql 가 2.5.4 일 때, SHOW MASTER STATUS 를 실행한다.
+# mysql 8.2 의 경우 SHOW MASTER STATUS 는 정상동작 하나
+# mysql 8.4 의 경우 SHOW BINARY LOG STATUS 로 직접 변경 필요하다.
+RUN confluent-hub install --no-prompt debezium/debezium-connector-mysql:latest
+
+ENV CONNECT_PLUGIN_PATH="/usr/share/java,/usr/share/confluent-hub-components"

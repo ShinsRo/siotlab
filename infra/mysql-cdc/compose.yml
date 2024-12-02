@@ -1,0 +1,23 @@
+include:
+  - ../common/network.yml
+  - ../kafka/compose.yml
+  - connect/compose.yml
+
+services:
+  cdc-source-mysql:
+    container_name: cdc-source-mysql
+    image: mysql:8.2.0
+    ports: [13306:3306]
+    volumes:
+      - ./volumes/mysql.cnf:/etc/mysql.conf.d/mysql.cnf
+      - ./volumes/inventory.sql:/docker-entrypoint-initdb.d/inventory.sql
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
+
+  cdc-target-mysql:
+    container_name: cdc-target-mysql
+    image: mysql:8.2.0
+    ports: [23306:3306]
+    volumes: []
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: true

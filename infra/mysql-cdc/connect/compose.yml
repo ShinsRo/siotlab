@@ -1,0 +1,24 @@
+services:
+  kafka-connect:
+    build:
+      context: .
+      dockerfile: Dockerfiles
+    container_name: kafka-connect
+    ports: [8083:8083]
+    volumes:
+      - ./volumes/connectors:/connectors
+    depends_on: [kafka-1, kafka-2, kafka-3]
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka-1:19091,kafka-2:19092,kafka-3:19093
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: debezium-00
+      CONNECT_CONFIG_STORAGE_TOPIC: DEBEZIUM_CONNECT_CONFIGS
+      CONNECT_OFFSET_STORAGE_TOPIC: DEBEZIUM_CONNECT_OFFSETS
+      CONNECT_STATUS_STORAGE_TOPIC: DEBEZIUM_CONNECT_STATUSES
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+    command: ["/bin/sh", "-c", "/etc/confluent/docker/run & /connectors/create-connector.sh"]

@@ -1,0 +1,7 @@
+name: "${SIOTLAB_PROJECT_NAME:-siotlab}"
+
+services:
+  kafka-ui:
+    environment:
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: "kafka-connect-cluster"
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: "http://kafka-connect:8083"

@@ -1,0 +1,26 @@
+{
+  "name": "debezium-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "tasks.max": "1",
+    "database.hostname": "cdc-source-mysql",
+    "database.port": "3306",
+    "database.user": "debezium",
+    "database.password": "dbz",
+    "database.server.id": "112233",
+    "database.allowPublicKeyRetrieval": "true",
+    "database.connectionTimeZone": "UTC",
+    "database.include.list": "inventory",
+    "provide.transaction.metadata": "false",
+    "transforms": "unwrap",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.add.fields": "op",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "snapshot.mode": "schema_only",
+    "transforms.unwrap.delete.handling.mode": "rewrite",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka-1:19091,kafka-2:19092,kafka-3:19093",
+    "schema.history.internal.kafka.topic": "schema-changes.inventory",
+    "topic.prefix": "local-cdc",
+    "tombstones.on.delete": "false"
+  }
+}
