@@ -1,6 +1,6 @@
 services:
   prometheus:
-    image: prom/prometheus:v2.54.1
+    image: prom/prometheus:${PROMETHEUS_VERSION}
     command:
       - --config.file=/etc/prometheus.yml
       - --enable-feature=otlp-write-receiver

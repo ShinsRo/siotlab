@@ -2,9 +2,9 @@ name: "${SIOTLAB_PROJECT_NAME:-siotlab}"
 
 services:
   grafana:
-    image: grafana/grafana:11.2.2
+    image: grafana/grafana:${GRAFANA_VERSION}
     ports:
-      - "3000:${SIOTLAB_GRAFANA_PORT:-3000}"
+      - "${GRAFANA_PORT}:3000"
     volumes:
       - ./volumes/log:/var/log/grafana
       - ./volumes/data:/var/lib/grafana
@@ -12,7 +12,7 @@ services:
       - ./volumes/etc/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
 
   loki:
-    image: grafana/loki:3.2.0
+    image: grafana/loki:${LOKI_VERSION}
     command:
 #      - -print-config-stderr                              # Loki Config 를 출력한다.
 #      - -log-config-reverse-order                         # Loki Config 를 역순으로 출력한다.
@@ -23,7 +23,7 @@ services:
       - ./volumes/loki/chunks/:/etc/loki/chunks
 
   tempo:
-    image: grafana/tempo:2.6.0
+    image: grafana/tempo:${TEMPO_VERSION}
     command:
       - -config.expand-env=true
       - -config.file=/etc/tempo.yml
