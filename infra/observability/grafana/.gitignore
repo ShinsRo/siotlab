@@ -1,3 +1,4 @@
 volumes/*
 
 !volumes/etc/
+!volumes/dashboards/

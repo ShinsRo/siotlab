@@ -10,6 +10,8 @@ services:
       - ./volumes/data:/var/lib/grafana
       - ./volumes/etc/grafana.ini:/etc/grafana/grafana.ini
       - ./volumes/etc/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./volumes/etc/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./volumes/dashboards:/var/lib/grafana/dashboards
 
   loki:
     image: grafana/loki:${LOKI_VERSION}
