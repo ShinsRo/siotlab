@@ -17,7 +17,9 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-mockserver")
     testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.mock-server:mockserver-client-java:5.15.0")
 }
 
 tasks.test {

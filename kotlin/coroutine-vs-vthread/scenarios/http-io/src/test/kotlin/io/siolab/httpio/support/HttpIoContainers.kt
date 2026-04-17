@@ -1,27 +1,27 @@
 package io.siolab.httpio.support
 
-import org.testcontainers.containers.GenericContainer
+import org.mockserver.client.MockServerClient
 import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.mockserver.MockServerContainer
 import org.testcontainers.utility.DockerImageName
 
-private const val NGINX_HTTP_PORT = 80
-private val NGINX_IMAGE = DockerImageName.parse("nginx:1.23.2")
+private val MOCK_SERVER_IMAGE = DockerImageName
+    .parse("mockserver/mockserver")
+    .withTag("mockserver-${MockServerClient::class.java.`package`.implementationVersion}")
 
 interface HttpIoContainers {
-    val nginx: GenericContainer<*>
-        get() = Companion.nginx
+    val mockServer: MockServerContainer
+        get() = Companion.mockServer
 
-    @Suppress("HttpUrlsUsage")
-    val nginxBaseUrl: String
-        get() {
-            val mappedHttpPort = nginx.getMappedPort(NGINX_HTTP_PORT)
-            return "http://${nginx.host}:$mappedHttpPort"
-        }
+    val mockServerBaseUrl: String
+        get() = mockServer.endpoint
+
+    fun mockServerClient(): MockServerClient =
+        MockServerClient(mockServer.host, mockServer.serverPort)
 
     companion object {
         @Container
         @JvmField
-        val nginx: GenericContainer<*> = GenericContainer(NGINX_IMAGE)
-            .withExposedPorts(NGINX_HTTP_PORT)
+        val mockServer: MockServerContainer = MockServerContainer(MOCK_SERVER_IMAGE)
     }
 }
