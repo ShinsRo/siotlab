@@ -2,7 +2,9 @@ package io.siolab.httpio
 
 import io.siolab.httpio.support.HttpIoContainers
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockserver.model.Delay
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.model.HttpResponse.response
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -30,5 +32,31 @@ class HttpIoContainerStartupTest : HttpIoContainers {
         assertEquals(200, response.statusCode())
         assertEquals("ok", response.body())
         println("mockServerBaseUrl=$mockServerBaseUrl")
+    }
+
+    @Test
+    fun `가상 스레드 http io 시나리오가 결과를 계산한다`() {
+        mockServerClient()
+            .`when`(request().withMethod("GET").withPath("/delay/50"))
+            .respond(
+                response()
+                    .withStatusCode(200)
+                    .withBody("ok")
+                    .withDelay(Delay.milliseconds(50)),
+            )
+
+        val scenario = VirtualThreadHttpIoScenario()
+        val result = scenario.run(
+            HttpIoRequest(20, 50, 5),
+            mockServerBaseUrl,
+        )
+
+        assertEquals(20, result.requestCount())
+        assertEquals(50, result.serverDelayMillis())
+        assertEquals(5, result.concurrency())
+        assertTrue(result.maxConcurrentRequests() <= 5)
+        assertTrue(result.elapsedMillis() > 0)
+        assertTrue(result.requestsPerSecond() > 0.0)
+        assertTrue(result.averageLatencyMillis() > 0.0)
     }
 }
