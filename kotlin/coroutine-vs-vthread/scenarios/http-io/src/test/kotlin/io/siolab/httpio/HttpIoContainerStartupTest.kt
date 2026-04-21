@@ -59,4 +59,30 @@ class HttpIoContainerStartupTest : HttpIoContainers {
         assertTrue(result.requestsPerSecond() > 0.0)
         assertTrue(result.averageLatencyMillis() > 0.0)
     }
+
+    @Test
+    fun `코루틴 http io 시나리오가 결과를 계산한다`() {
+        mockServerClient()
+            .`when`(request().withMethod("GET").withPath("/delay/50"))
+            .respond(
+                response()
+                    .withStatusCode(200)
+                    .withBody("ok")
+                    .withDelay(Delay.milliseconds(50)),
+            )
+
+        val scenario = CoroutineHttpIoScenario()
+        val result = scenario.run(
+            HttpIoRequest(20, 50, 5),
+            mockServerBaseUrl,
+        )
+
+        assertEquals(20, result.requestCount())
+        assertEquals(50, result.serverDelayMillis())
+        assertEquals(5, result.concurrency())
+        assertTrue(result.maxConcurrentRequests() <= 5)
+        assertTrue(result.elapsedMillis() > 0)
+        assertTrue(result.requestsPerSecond() > 0.0)
+        assertTrue(result.averageLatencyMillis() > 0.0)
+    }
 }
