@@ -17,6 +17,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.10.2")
 
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.12.2")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-mockserver")
     testImplementation("org.testcontainers:testcontainers")
