@@ -4,6 +4,8 @@
 
 테스트 대상 서버는 Testcontainers로 기동한 MockServer다.
 
+이 시나리오에서 코루틴은 비동기 메커니즘인 `HttpClient.sendAsync(...).await()`를 사용하고, 가상 스레드는 동기 메커니즘인 `HttpClient.send(...)`를 사용한다.
+
 ## 결과
 
 | 구현 | 요청 수 | 지연(ms) | 총 수행 시간(ms) | 최대 동시 요청 수 | req/s | 평균 지연 | p95 | p99 |
