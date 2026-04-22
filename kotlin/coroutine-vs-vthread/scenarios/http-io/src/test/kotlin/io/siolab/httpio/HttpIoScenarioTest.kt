@@ -20,7 +20,7 @@ class HttpIoScenarioTest : HttpIoContainers {
 
     @BeforeAll
     fun `mock server 응답을 준비한다`() {
-        listOf(1L, 50L).forEach { delayMillis ->
+        listOf(200L, 500L, 1_000L).forEach { delayMillis ->
             mockServerClient()
                 .`when`(request().withMethod("GET").withPath("/delay/$delayMillis"))
                 .respond(
@@ -38,11 +38,10 @@ class HttpIoScenarioTest : HttpIoContainers {
         implementation: String,
         requestCount: Int,
         serverDelayMillis: Long,
-        concurrency: Int,
         scenario: HttpIoScenario,
     ) {
         val result = scenario.run(
-            HttpIoRequest(requestCount, serverDelayMillis, concurrency),
+            HttpIoRequest(requestCount, serverDelayMillis),
             mockServerBaseUrl,
         )
 
@@ -51,7 +50,7 @@ class HttpIoScenarioTest : HttpIoContainers {
 
     @AfterAll
     fun `결과 테이블을 출력한다`() {
-        println("구현\t요청 수\t지연(ms)\t동시성\t총 수행 시간(ms)\t최대 동시 요청 수\treq/s\t평균 지연\tp95\tp99")
+        println("구현\t요청 수\t지연(ms)\t총 수행 시간(ms)\t최대 동시 요청 수\treq/s\t평균 지연\tp95\tp99")
         rows.sortedWith(
             compareBy<Row> { it.result.requestCount() }
                 .thenBy { it.result.serverDelayMillis() }
@@ -62,14 +61,12 @@ class HttpIoScenarioTest : HttpIoContainers {
     companion object {
         @JvmStatic
         fun cases(): List<Arguments> = listOf(
-            Arguments.of("coroutine", 100, 1L, 10, CoroutineHttpIoScenario()),
-            Arguments.of("coroutine", 100, 50L, 10, CoroutineHttpIoScenario()),
-            Arguments.of("coroutine", 1_000, 1L, 100, CoroutineHttpIoScenario()),
-            Arguments.of("coroutine", 1_000, 50L, 100, CoroutineHttpIoScenario()),
-            Arguments.of("virtualThread", 100, 1L, 10, VirtualThreadHttpIoScenario()),
-            Arguments.of("virtualThread", 100, 50L, 10, VirtualThreadHttpIoScenario()),
-            Arguments.of("virtualThread", 1_000, 1L, 100, VirtualThreadHttpIoScenario()),
-            Arguments.of("virtualThread", 1_000, 50L, 100, VirtualThreadHttpIoScenario()),
+            Arguments.of("coroutine", 1_000, 200L, CoroutineHttpIoScenario()),
+            Arguments.of("coroutine", 1_000, 500L, CoroutineHttpIoScenario()),
+            Arguments.of("coroutine", 1_000, 1_000L, CoroutineHttpIoScenario()),
+            Arguments.of("virtualThread", 1_000, 200L, VirtualThreadHttpIoScenario()),
+            Arguments.of("virtualThread", 1_000, 500L, VirtualThreadHttpIoScenario()),
+            Arguments.of("virtualThread", 1_000, 1_000L, VirtualThreadHttpIoScenario()),
         )
     }
 
@@ -84,7 +81,6 @@ class HttpIoScenarioTest : HttpIoContainers {
 private fun HttpIoResult.toRowString(): String = listOf(
     requestCount(),
     serverDelayMillis(),
-    concurrency(),
     elapsedMillis(),
     maxConcurrentRequests(),
     "%.2f".format(requestsPerSecond()),

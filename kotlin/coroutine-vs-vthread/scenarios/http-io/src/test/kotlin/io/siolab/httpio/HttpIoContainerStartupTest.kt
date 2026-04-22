@@ -47,14 +47,13 @@ class HttpIoContainerStartupTest : HttpIoContainers {
 
         val scenario = VirtualThreadHttpIoScenario()
         val result = scenario.run(
-            HttpIoRequest(20, 50, 5),
+            HttpIoRequest(20, 50),
             mockServerBaseUrl,
         )
 
         assertEquals(20, result.requestCount())
         assertEquals(50, result.serverDelayMillis())
-        assertEquals(5, result.concurrency())
-        assertTrue(result.maxConcurrentRequests() <= 5)
+        assertTrue(result.maxConcurrentRequests() > 0)
         assertTrue(result.elapsedMillis() > 0)
         assertTrue(result.requestsPerSecond() > 0.0)
         assertTrue(result.averageLatencyMillis() > 0.0)
@@ -73,14 +72,13 @@ class HttpIoContainerStartupTest : HttpIoContainers {
 
         val scenario = CoroutineHttpIoScenario()
         val result = scenario.run(
-            HttpIoRequest(20, 50, 5),
+            HttpIoRequest(20, 50),
             mockServerBaseUrl,
         )
 
         assertEquals(20, result.requestCount())
         assertEquals(50, result.serverDelayMillis())
-        assertEquals(5, result.concurrency())
-        assertTrue(result.maxConcurrentRequests() <= 5)
+        assertTrue(result.maxConcurrentRequests() > 0)
         assertTrue(result.elapsedMillis() > 0)
         assertTrue(result.requestsPerSecond() > 0.0)
         assertTrue(result.averageLatencyMillis() > 0.0)

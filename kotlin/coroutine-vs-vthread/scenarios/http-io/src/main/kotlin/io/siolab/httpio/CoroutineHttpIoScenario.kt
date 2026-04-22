@@ -5,8 +5,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -23,42 +21,39 @@ class CoroutineHttpIoScenario(
         val activeRequests = AtomicInteger(0)
         val maxConcurrentRequests = AtomicInteger(0)
         val latencies = mutableListOf<Long>()
-        val concurrencyLimiter = Semaphore(request.concurrency())
 
         val elapsedNanos = measureNanoTime {
             runBlocking {
                 coroutineScope {
                     List(request.requestCount()) {
                         async {
-                            concurrencyLimiter.withPermit {
-                                val currentActiveRequests = activeRequests.incrementAndGet()
-                                maxConcurrentRequests.updateAndGet { previous ->
-                                    max(previous, currentActiveRequests)
-                                }
+                            val currentActiveRequests = activeRequests.incrementAndGet()
+                            maxConcurrentRequests.updateAndGet { previous ->
+                                max(previous, currentActiveRequests)
+                            }
 
-                                val requestElapsedNanos = measureNanoTime {
-                                    try {
-                                        val httpRequest = HttpRequest.newBuilder()
-                                            .uri(URI.create("$baseUrl/delay/${request.serverDelayMillis()}"))
-                                            .GET()
-                                            .build()
+                            val requestElapsedNanos = measureNanoTime {
+                                try {
+                                    val httpRequest = HttpRequest.newBuilder()
+                                        .uri(URI.create("$baseUrl/delay/${request.serverDelayMillis()}"))
+                                        .GET()
+                                        .build()
 
-                                        val response = httpClient.sendAsync(
-                                            httpRequest,
-                                            HttpResponse.BodyHandlers.discarding(),
-                                        ).await()
+                                    val response = httpClient.sendAsync(
+                                        httpRequest,
+                                        HttpResponse.BodyHandlers.discarding(),
+                                    ).await()
 
-                                        require(response.statusCode() == 200) {
-                                            "Unexpected status code: ${response.statusCode()}"
-                                        }
-                                    } finally {
-                                        activeRequests.decrementAndGet()
+                                    require(response.statusCode() == 200) {
+                                        "Unexpected status code: ${response.statusCode()}"
                                     }
+                                } finally {
+                                    activeRequests.decrementAndGet()
                                 }
+                            }
 
-                                synchronized(latencies) {
-                                    latencies += requestElapsedNanos / 1_000_000
-                                }
+                            synchronized(latencies) {
+                                latencies += requestElapsedNanos / 1_000_000
                             }
                         }
                     }.awaitAll()
@@ -74,7 +69,6 @@ class CoroutineHttpIoScenario(
         return HttpIoResult(
             request.requestCount(),
             request.serverDelayMillis(),
-            request.concurrency(),
             maxConcurrentRequests.get(),
             elapsedMillis,
             requestsPerSecond,

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,7 +29,6 @@ public final class VirtualThreadHttpIoScenario implements HttpIoScenario {
         AtomicInteger activeRequests = new AtomicInteger(0);
         AtomicInteger maxConcurrentRequests = new AtomicInteger(0);
         List<Long> latencies = Collections.synchronizedList(new ArrayList<>(request.requestCount()));
-        Semaphore concurrencyLimiter = new Semaphore(request.concurrency());
 
         long startedAt = System.nanoTime();
 
@@ -39,7 +37,6 @@ public final class VirtualThreadHttpIoScenario implements HttpIoScenario {
 
             for (int i = 0; i < request.requestCount(); i++) {
                 futures.add(executor.submit(() -> {
-                    concurrencyLimiter.acquire();
                     int currentActiveRequests = activeRequests.incrementAndGet();
                     maxConcurrentRequests.updateAndGet(previous -> Math.max(previous, currentActiveRequests));
 
@@ -57,7 +54,6 @@ public final class VirtualThreadHttpIoScenario implements HttpIoScenario {
                     } finally {
                         latencies.add(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - requestStartedAt));
                         activeRequests.decrementAndGet();
-                        concurrencyLimiter.release();
                     }
 
                     return null;
@@ -80,7 +76,6 @@ public final class VirtualThreadHttpIoScenario implements HttpIoScenario {
         return new HttpIoResult(
             request.requestCount(),
             request.serverDelayMillis(),
-            request.concurrency(),
             maxConcurrentRequests.get(),
             elapsedMillis,
             requestsPerSecond,
