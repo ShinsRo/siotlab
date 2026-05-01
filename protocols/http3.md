@@ -1,4 +1,4 @@
-# HTTP/3와 QUIC
+# HTTP/3 개념 정리
 
 ## 개요
 
@@ -8,10 +8,28 @@ HTTP의 세 번째 주요 버전이다.
 연결 방식의 기반을 QUIC으로 바꾼 프로토콜이다.
 
 이 문서는 HTTP/3의 개념과 등장 배경, 동작 방식, 기반 기술인 QUIC을 정리하고,
-기존 HTTP/2와의 차이와 주요 언어 및 구현체들의 지원 형태를 함께 살펴보기 위한 문서이다.
+기존 HTTP 버전들과의 차이를 함께 살펴보기 위한 문서이다.
 
 구체적인 HTTP/3 명세는 [RFC 9114](https://datatracker.ietf.org/doc/html/rfc9114)를 참고할 수 있고,
 후술할 QUIC 전송 프로토콜은 [RFC 9000](https://datatracker.ietf.org/doc/html/rfc9000)을 참고할 수 있다.
+
+## 목차
+
+- [등장 배경](#등장-배경)
+  - [TCP의 한계](#tcp의-한계)
+  - [QUIC의 등장](#quic의-등장)
+  - [생태계의 반응](#생태계의-반응)
+- [HTTP/3 기능별 메커니즘](#http3-기능별-메커니즘)
+  - [QUIC 계층의 역할](#quic-계층의-역할)
+    - [보안: 연결 수립](#보안-연결-수립)
+    - [스트림: 멀티플렉싱](#스트림-멀티플렉싱)
+    - [신뢰성: 손실 복구](#신뢰성-손실-복구)
+    - [연결 관리: 연결 마이그레이션](#연결-관리-연결-마이그레이션)
+  - [HTTP/3 연결과 메시지 처리](#http3-연결과-메시지-처리)
+    - [연결 발견](#연결-발견)
+    - [헤더와 메시지 전달](#헤더와-메시지-전달)
+- [기존 HTTP 버전과의 차이](#기존-http-버전과의-차이)
+- [마무리](#마무리)
 
 ## 등장 배경
 
@@ -25,7 +43,7 @@ HTTP/2의 멀티플렉싱은 한 TCP 연결 위에서 여러 요청과 응답을
 - 연결 지연: TCP 연결 수립과 TLS 협상 과정에서 왕복 지연 발생
 - 연결 유지: 모바일 환경에서 네트워크 변경 시 재연결 필요
 
-그리고 이 문제를 줄이기 위한 출발점이 Google이 2013년 Chrome과 자사 서비스에
+이 문제를 줄이기 위한 출발점은 Google이 2013년 Chrome과 자사 서비스에
 실험적으로 도입한 QUIC이다.
 
 ### QUIC의 등장
@@ -60,7 +78,7 @@ timeline
          : RFC 9114로 HTTP/3 발행
 ```
 
-#### 생태계의 반응
+### 생태계의 반응
 
 HTTP/3 지원은 브라우저와 대형 서비스, CDN에서 먼저 확산되었다.
 Google은 Chrome과 자사 서비스를 통해 QUIC을 먼저 실험했고,
@@ -74,14 +92,174 @@ Python과 Kotlin은 언어 표준 라이브러리 차원의 HTTP/3 지원보다�
 Python은 `aioquic` 같은 구현체를 통해 QUIC과 HTTP/3를 사용할 수 있고,
 Kotlin 계열은 JVM, Ktor, Netty, OkHttp 같은 실행 환경과 라이브러리의 영향을 받는다.
 
-## QUIC 개념과 특징
+## HTTP/3 기능별 메커니즘
 
-## HTTP/3 동작 원리
+### QUIC 계층의 역할
 
-## HTTP/2와의 차이
+HTTP/3에서 QUIC은 TCP와 TLS가 나누어 맡던 역할을 함께 담당한다.
+QUIC의 역할은 다음 네 가지로 정리할 수 있다.
 
-## 언어 및 구현체 지원 현황
+#### 보안: 연결 수립
 
-## 관련 기술
+HTTP/3 연결은 TCP 연결을 만든 뒤 TLS를 올리는 방식이 아니라,
+QUIC 연결 수립 과정 안에서 TLS 1.3 핸드셰이크를 함께 처리한다.
+따라서 기존 TCP + TLS 조합보다 왕복 지연을 줄일 수 있다.
 
-## 정리
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    C->>S: QUIC Initial + TLS ClientHello
+    S->>C: QUIC Initial + TLS ServerHello
+    C->>S: Handshake 완료
+    C->>S: HTTP/3 Request
+    S->>C: HTTP/3 Response
+```
+
+#### 스트림: 멀티플렉싱
+
+HTTP/3의 요청과 응답은 QUIC 스트림 위에서 전달된다.
+QUIC 연결은 하나의 논리적 연결이지만,
+그 안에는 여러 개의 독립적인 스트림이 존재할 수 있다.
+각 스트림은 고유한 Stream ID를 가지며,
+HTTP/3는 보통 하나의 요청-응답 쌍을 하나의 스트림에 매핑한다.
+
+```mermaid
+flowchart LR
+    C[QUIC Connection]
+    S1[Stream 0<br/>Request A / Response A]
+    S2[Stream 4<br/>Request B / Response B]
+    S3[Stream 8<br/>Request C / Response C]
+    F1[HEADERS + DATA]
+    F2[HEADERS + DATA]
+    F3[HEADERS + DATA]
+
+    C --> S1
+    C --> S2
+    C --> S3
+    S1 --> F1
+    S2 --> F2
+    S3 --> F3
+```
+
+각 스트림은 독립적인 순서와 흐름 제어를 가진다.
+따라서 한 스트림에서 패킷 손실이나 지연이 발생해도,
+다른 스트림은 가능한 범위에서 계속 처리될 수 있다.
+
+HTTP/2도 하나의 TCP 연결에서 여러 스트림을 처리했지만,
+TCP 계층에서는 모든 바이트가 하나의 순서로 복원되어야 했다.
+반면 HTTP/3는 QUIC이 스트림 단위로 데이터를 관리하므로,
+특정 스트림의 손실이 다른 스트림 전체를 막는 상황을 줄일 수 있다.
+
+#### 신뢰성: 손실 복구
+
+QUIC 계층은 UDP 위에서 직접 손실 감지와 재전송을 처리한다.
+UDP 자체는 ACK나 재전송을 제공하지 않지만,
+QUIC 계층은 각 packet에 번호를 부여하고 수신 상태를 ACK frame으로 교환한다.
+송신자는 ACK frame을 통해 확인되지 않은 packet을 손실로 판단하고,
+그 안에 포함되어 있던 데이터를 다시 전송한다.
+
+```mermaid
+flowchart LR
+    P1[Packet 1<br/>Stream 0 Frame]
+    P2[Packet 2<br/>Stream 4 Frame]
+    P3[Packet 3<br/>Stream 8 Frame]
+
+    P1 --> A1[ACK]
+    P2 --> L[Lost]
+    P3 --> A3[ACK]
+
+    L --> R[Stream 4 Frame 재전송]
+```
+
+중요한 점은 QUIC packet과 QUIC stream이 같은 단위가 아니라는 것이다.
+packet은 네트워크 전송과 손실 감지의 단위이고,
+stream은 애플리케이션 데이터의 순서와 흐름 제어 단위이다.
+
+따라서 특정 packet이 손실되면 그 packet에 포함된 stream frame은 재전송되지만,
+다른 stream의 데이터까지 같은 순서로 대기할 필요는 없다.
+이 구조 때문에 HTTP/2 over TCP에서 문제가 되었던 연결 전체 단위의 HOL Blocking을 완화할 수 있다.
+
+#### 연결 관리: 연결 마이그레이션
+
+QUIC은 IP 주소나 포트가 바뀌어도 연결을 식별할 수 있도록 Connection ID를 사용한다.
+이 덕분에 모바일 환경에서 Wi-Fi에서 LTE로 전환되는 상황처럼 네트워크 경로가 바뀌어도
+같은 논리적 연결을 이어갈 수 있다.
+
+```mermaid
+flowchart LR
+    A[Wi-Fi 경로] -->|네트워크 변경| B[LTE 경로]
+    A -. 같은 Connection ID .- C[QUIC Connection]
+    B -. 같은 Connection ID .- C
+    C --> D[HTTP/3 요청/응답 유지]
+```
+
+### HTTP/3 연결과 메시지 처리
+
+HTTP/3는 QUIC이 제공하는 연결과 스트림 위에서 HTTP 요청과 응답을 구성한다.
+이 과정에는 HTTP/3 사용 가능 여부를 찾는 연결 발견과,
+요청/응답을 프레임으로 나누어 전달하는 방식이 포함된다.
+
+#### 연결 발견
+
+클라이언트가 처음부터 HTTP/3를 사용할 수 있다고 확신하기는 어렵다.
+그래서 실제 연결에서는 다음 방식들이 사용된다.
+
+- Alt-Svc: 기존 HTTP/1.1 또는 HTTP/2 응답을 통해 HTTP/3 사용 가능 여부를 알림
+- HTTPS DNS 레코드: DNS 단계에서 HTTP/3 사용 가능 정보를 전달
+- 직접 시도: 클라이언트가 HTTP/3 연결을 먼저 시도하고 실패하면 이전 버전으로 전환
+
+#### 헤더와 메시지 전달
+
+HTTP/3는 HTTP/2와 비슷한 바이너리 프레이밍 구조를 사용한다.
+다만 HTTP/2 프레임을 그대로 쓰는 것이 아니라,
+QUIC 스트림 위에서 HTTP/3 전용 프레임을 사용한다.
+
+대표적인 프레임은 다음과 같다.
+
+| 프레임 | 역할 |
+| --- | --- |
+| `HEADERS` | 요청/응답 헤더 전달 |
+| `DATA` | 요청/응답 본문 전달 |
+| `SETTINGS` | 연결 단위 설정 교환 |
+| `GOAWAY` | 연결 종료 또는 graceful shutdown 알림 |
+
+하나의 요청은 대체로 다음 흐름으로 전달된다.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant Q as QUIC Stream
+    participant S as Server
+
+    C->>Q: HEADERS
+    C->>Q: DATA
+    Q->>S: HTTP Request
+    S->>Q: HEADERS
+    S->>Q: DATA
+    Q->>C: HTTP Response
+```
+
+이때 헤더는 QPACK을 사용해 압축한다.
+
+## 기존 HTTP 버전과의 차이
+
+HTTP 버전별 차이를 정리하면 아래와 같다.
+
+| 항목 | HTTP/1.1 | HTTP/2 | HTTP/3 |
+| --- | --- | --- | --- |
+| 전송 기반 | TCP | TCP | QUIC over UDP |
+| 보안 | TLS를 별도로 구성 | TLS를 TCP 위에 별도로 구성 | TLS 1.3이 QUIC에 통합 |
+| 요청 처리 | 연결당 요청을 순차 처리하거나 여러 TCP 연결 사용 | HTTP/2 스트림을 하나의 TCP 연결에 다중화 | QUIC 스트림을 하나의 QUIC 연결에 다중화 |
+| HOL Blocking | 요청 단위 또는 TCP 연결 단위에서 발생 가능 | TCP 패킷 손실 시 연결 전체에 영향 가능 | 스트림 단위 처리로 영향 완화 |
+| 연결 마이그레이션 | IP/포트 변경 시 연결 유지 어려움 | IP/포트 변경 시 연결 유지 어려움 | Connection ID로 연결 유지 가능 |
+| 헤더 압축 | 없음 | HPACK | QPACK |
+
+## 마무리
+
+HTTP/3 에 대한 내용을 정리하면 아래와 같다. 
+
+- HTTP/3는 HTTP 모델을 유지한 채 TCP에서 QUIC 으로 옮긴 버전 
+- HTTP/2 에서 남아 있던 연결 지연 문제, 유지 문제, HOL Blocking 문제를 개선
+- 주요 생태계에서는 이에 상응하는 구현체 및 환경을 제공하고 있음
