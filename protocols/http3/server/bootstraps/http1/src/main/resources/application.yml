@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: http1-server
+
+server:
+  port: 8080
+  shutdown: graceful
+  http2:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true

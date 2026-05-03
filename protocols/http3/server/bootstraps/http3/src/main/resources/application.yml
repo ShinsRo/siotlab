@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: http3-server
+
+server:
+  port: 8443
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true

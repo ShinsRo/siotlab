@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: http2-server
+
+server:
+  port: 8443
+  shutdown: graceful
+  http2:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
