@@ -1,12 +1,12 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.5.0" apply false
+    id("org.springframework.boot") version "4.0.6" apply false
 }
 
 group = "io.siolab.protocols"
 version = "0.0.1-SNAPSHOT"
 
-val springBootVersion = "3.5.0"
+val springBootVersion = "4.0.6"
 
 subprojects {
     group = rootProject.group
