@@ -28,7 +28,7 @@ public class BenchmarkController {
 
     @GetMapping("/payload")
     public Mono<Map<String, Object>> payload(
-        @RequestParam(defaultValue = "1024") int bytes
+        @RequestParam(name = "bytes", defaultValue = "1024") int bytes
     ) {
         int boundedBytes = Math.clamp(bytes, 0, 1024 * 1024);
         byte[] data = new byte[boundedBytes];
@@ -44,7 +44,7 @@ public class BenchmarkController {
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Map<String, Object>> stream(
-        @RequestParam(defaultValue = "10") int count
+        @RequestParam(name = "count", defaultValue = "10") int count
     ) {
         int boundedCount = Math.clamp(count, 1, 10_000);
 
