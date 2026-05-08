@@ -88,8 +88,9 @@ esac
 
 case "$TARGET" in
   http1)
-    URL="http://127.0.0.1:8080$PATH_AND_QUERY"
+    URL="https://127.0.0.1:8080$PATH_AND_QUERY"
     TARGET_ARGS=(--http-version 1.1)
+    TARGET_ARGS+=(--insecure)
     ;;
   http2)
     URL="https://127.0.0.1:8443$PATH_AND_QUERY"
